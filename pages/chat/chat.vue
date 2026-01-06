@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 let messages = reactive([])
 let chatList = reactive([])
@@ -16,24 +17,59 @@ function send() {
 	userInput.value = ''
 	
 	// bce-v3/ALTAK-70ouDlcS3WIdV6HEETNpZ/853d9711854a2f130f725bca613e1a59b39a3161
-	uni.request({
-		url: 'https://qianfan.baidubce.com/v2/chat/completions',
-		method: "POST",
-		header: {
-			'Content-Type': 'application/json',
+	// uni.request({
+	// 	url: 'https://qianfan.baidubce.com/v2/chat/completions',
+	// 	method: "POST",
+	// 	header: {
+	// 		'Content-Type': 'application/json',
+	// 		Authorization: 'Bearer bce-v3/ALTAK-70ouDlcS3WIdV6HEETNpZ/853d9711854a2f130f725bca613e1a59b39a3161'
+	// 	},
+	// 	data: {
+	// 		model: "ernie-3.5-8k",
+	// 		messages,
+	// 		stream:true
+	// 	}
+	// }).then(res => {
+	// 	console.log(res)
+	// 	messages.push(res.data.choices[0].message)
+	// 	console.log('messages',messages)
+	// 	chatList[chatIndex.value] = messages
+	// 	uni.setStorageSync("chat-list", chatList)
+	// })
+	
+	let lastMsg = {}
+	
+	fetchEventSource('https://qianfan.baidubce.com/v2/chat/completions', {
+	    method: 'POST',
+	    headers: {
+	        'Content-Type': 'application/json',
 			Authorization: 'Bearer bce-v3/ALTAK-70ouDlcS3WIdV6HEETNpZ/853d9711854a2f130f725bca613e1a59b39a3161'
-		},
-		data: {
-			model: "ernie-3.5-8k",
-			messages,
+	    },
+	    body: JSON.stringify({
+	        model: "ernie-4.5-turbo-128k",
+	        messages,
+	        stream:true
+	    }),
+		onmessage(ev) {
+			console.log(ev.data);
+			const res = JSON.parse(ev.data)
+			if(res.finish_reason === 'stop') {
+				uni.setStorageSync("chat-list", chatList)
+			} else {
+				if(lastMsg.content) {
+					lastMsg.content += res.choices[0].delta.content
+				} else {
+					messages.push({
+						role: 'assistant',
+						content: res.choices[0].delta.content
+					})
+					lastMsg = messages[messages.length-1]
+				}
+				
+				
+			}
 		}
-	}).then(res => {
-		console.log(res)
-		messages.push(res.data.choices[0].message)
-		console.log('messages',messages)
-		chatList[chatIndex.value] = messages
-		uni.setStorageSync("chat-list", chatList)
-	})
+	});
 }
 
 function handleBack() {
@@ -51,6 +87,7 @@ onLoad((options) => {
 		}
 		chatList = res
 	}
+	chatList.push(messages)
 	console.log('chatList',chatList)
 }) 
 </script>
