@@ -37,8 +37,12 @@ function send() {
 	// 	uni.setStorageSync("chat-list", chatList)
 	// })
 	
-	let lastMsg = {}
+	messages.push({
+		role: 'assistant',
+		content: ''
+	})
 	
+	const controller = new AbortController();
 	fetchEventSource('https://qianfan.baidubce.com/v2/chat/completions', {
 	    method: 'POST',
 	    headers: {
@@ -50,25 +54,21 @@ function send() {
 	        messages,
 	        stream:true
 	    }),
+		signal: controller.signal,
 		onmessage(ev) {
-			console.log(ev.data);
 			const res = JSON.parse(ev.data)
-			if(res.finish_reason === 'stop') {
-				uni.setStorageSync("chat-list", chatList)
+			console.log(res)
+			if(res.choices[0].finish_reason === "stop") {
+				controller.abort();
+				uni.setStorageSync("chat-list", messages)
 			} else {
-				if(lastMsg.content) {
-					lastMsg.content += res.choices[0].delta.content
+				if(messages[messages.length-1].content) {
+					messages[messages.length-1].content += res.choices[0].delta.content
 				} else {
-					messages.push({
-						role: 'assistant',
-						content: res.choices[0].delta.content
-					})
-					lastMsg = messages[messages.length-1]
+					messages[messages.length-1].content = res.choices[0].delta.content
 				}
-				
-				
 			}
-		}
+		},
 	});
 }
 
@@ -76,19 +76,19 @@ function handleBack() {
 	uni.navigateBack()
 }
 
-onLoad((options) => {
-	console.log('options',options)
+onLoad(() => {
 	const res = uni.getStorageSync("chat-list")
 	console.log('res',res)
 	if(res) {
-		if(options.index) {
-			chatIndex.value = +options.index
-			messages = res[+options.index]
-		}
-		chatList = res
+		// if(options.index) {
+		// 	chatIndex.value = +options.index
+		// 	messages = res[+options.index]
+		// }
+		// chatList = res
+		messages = res
 	}
-	chatList.push(messages)
-	console.log('chatList',chatList)
+	// chatList.push(messages)
+	// console.log('chatList',chatList)
 }) 
 </script>
 
