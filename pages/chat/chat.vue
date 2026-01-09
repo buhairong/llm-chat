@@ -2,11 +2,16 @@
 import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { fetchEventSource } from '@microsoft/fetch-event-source';
+import { marked } from 'marked';
 
 let messages = reactive([])
 let chatList = reactive([])
 const chatIndex = ref(0)
 const userInput = ref("")
+
+function md2html(md) {
+	return marked.parse(md);
+}
 
 function send() {
 	messages.push({
@@ -111,7 +116,7 @@ onLoad(() => {
 		
 		<view class="message-list">
 			<view class="message" v-for="(message, index) in messages" :key="index" :class="message.role">
-				{{message.content}}
+				<rich-text :nodes="md2html(message.content)"></rich-text>
 			</view>
 		</view>
 		

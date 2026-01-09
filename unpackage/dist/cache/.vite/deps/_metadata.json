@@ -1,15 +1,25 @@
 {
-  "hash": "9117e7cc",
+  "hash": "e8515ad4",
   "configHash": "2011dd09",
-  "lockfileHash": "20552a93",
-  "browserHash": "cff5f5c6",
+  "lockfileHash": "5a26be31",
+  "browserHash": "0022bb23",
   "optimized": {
     "@microsoft/fetch-event-source": {
       "src": "../../../../../node_modules/@microsoft/fetch-event-source/lib/esm/index.js",
       "file": "@microsoft_fetch-event-source.js",
-      "fileHash": "0122ca61",
+      "fileHash": "41638c35",
+      "needsInterop": false
+    },
+    "marked": {
+      "src": "../../../../../node_modules/marked/lib/marked.esm.js",
+      "file": "marked.js",
+      "fileHash": "e1ab01b5",
       "needsInterop": false
     }
   },
-  "chunks": {}
+  "chunks": {
+    "chunk-F3FYYIAV": {
+      "file": "chunk-F3FYYIAV.js"
+    }
+  }
 }
